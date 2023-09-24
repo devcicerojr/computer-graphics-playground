@@ -18,6 +18,8 @@ set (GLEW_DLL "${CMAKE_CURRENT_LIST_DIR}/external/glew/bin/Release/x86/glew32.dl
 set (GLFW_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/external/glfw/include/" CACHE INTERNAL "")
 set (GLFW_LIB_DIR "${CMAKE_CURRENT_LIST_DIR}/external/glfw/lib/x86/" CACHE INTERNAL "")
 
+set (GLM_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/external/glm/" CACHE INTERNAL "")
+
 message("Runtime output: ${CMAKE_CURRENT_BINARY_DIR}")
 
 file(COPY ${GLEW_DLL} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
