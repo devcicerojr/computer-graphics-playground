@@ -19,6 +19,10 @@ float triOffset = 0.0f;
 float triMaxOffset = 0.7f;
 float triIncrement = 0.005f;
 
+const float toRadians = 3.14159265f / 180.0f;
+float curRotation = 0.0f;
+float rotateIncrement = 1.0f;
+
 // Vertex shader
 static const char* vShader = "											\n\
 #version 330															\n\
@@ -180,6 +184,11 @@ int main() {
 			triOffset -= triIncrement;
 		}
 
+		curRotation += rotateIncrement;
+		if (curRotation >= 360.0f) {
+			curRotation -= 360.0f;
+		}
+
 		if (abs(triOffset) >= triMaxOffset) {
 			direction = !direction;
 		}
@@ -191,7 +200,8 @@ int main() {
 		glUseProgram(shader);
 
 		glm::mat4 model(1.0f);
-		model = glm::translate(model, glm::vec3(triOffset, triOffset, 0.0f));
+		model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
+		model = glm::rotate(model, curRotation * toRadians , glm::vec3(0.0f, 0.0f, 1.0f));
 		// model = glm::rotate();
 		// model = glm::scale();
 		// 
