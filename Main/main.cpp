@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string.h>
+#include <cmath>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -7,16 +8,23 @@ using namespace std;
 
 const GLint WIDTH = 800 , HEIGHT = 600;
 
-GLuint VAO, VBO, shader;
+GLuint VAO, VBO, shader, uniformXMove;
+
+bool direction = true;
+float triOffset = 0.0f;
+float triMaxOffset = 0.7f;
+float triIncrement = 0.005f;
 
 // Vertex shader
-static const char* vShader = "									\n\
-#version 330													\n\
-																\n\
-layout(location = 0) in vec3 pos;								\n\
-																\n\
-void main() {													\n\
-	gl_Position = vec4(0.4 * pos.x, 0.4 * pos.y, pos.z, 1.0);	\n\
+static const char* vShader = "											\n\
+#version 330															\n\
+																		\n\
+layout(location = 0) in vec3 pos;										\n\
+																		\n\
+uniform float xMove;													\n\
+																		\n\
+void main() {															\n\
+	gl_Position = vec4(0.4 * pos.x + xMove, 0.4 * pos.y, pos.z, 1.0);	\n\
 }";
 
 
@@ -56,13 +64,11 @@ void createTriangle() {
 
 void addShader(GLuint program, const char* shader_code, GLenum shader_type) {
 	GLuint the_shader = glCreateShader(shader_type);
-	const GLchar* the_code[1];
-	the_code[0] = shader_code;
+	const GLchar* the_code = shader_code;
 
-	GLint codeLength[1];
-	codeLength[0] = strlen(shader_code);
+	GLint codeLength = strlen(shader_code);
 
-	glShaderSource(the_shader, 1, the_code, codeLength);
+	glShaderSource(the_shader, 1, &the_code, &codeLength);
 	glCompileShader(the_shader);
 
 	GLint result = 0;
@@ -107,6 +113,8 @@ void compileShaders() {
 		cout << "Error validating program: " <<  eLog << endl;
 		return;
 	}
+
+	uniformXMove = glGetUniformLocation(shader, "xMove");
 }
 
 int main() {
@@ -161,15 +169,28 @@ int main() {
 		// Get and Handle User Input Events
 		glfwPollEvents();
 
+		if (direction) {
+			triOffset += triIncrement;
+		}
+		else {
+			triOffset -= triIncrement;
+		}
+
+		if (abs(triOffset) >= triMaxOffset) {
+			direction = !direction;
+		}
+
 		// Clear window
 		glClearColor(0.0f, 0.0f , 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(shader);
+		glUniform1f(uniformXMove, triOffset);
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
 		glUseProgram(0);
+
 
 		glfwSwapBuffers(mainWindow);
 	}
