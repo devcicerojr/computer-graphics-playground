@@ -12,7 +12,7 @@ using namespace std;
 
 const GLint WIDTH = 800 , HEIGHT = 600;
 
-GLuint VAO, VBO, shader, uniformModel;
+GLuint VAO, VBO, IBO, shader, uniformModel;
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -28,11 +28,13 @@ static const char* vShader = "											\n\
 #version 330															\n\
 																		\n\
 layout(location = 0) in vec3 pos;										\n\
+out vec4 vCol;															\n\
 																		\n\
-uniform mat4 model;													\n\
+uniform mat4 model;														\n\
 																		\n\
 void main() {															\n\
-	gl_Position = model * vec4(0.4 * pos.x , 0.4 * pos.y, pos.z, 1.0);	\n\
+	gl_Position = model * vec4(pos ,  1.0);								\n\
+	vCol = vec4(clamp(pos, 0.0, 1.0), 1.0);								\n\
 }";
 
 
@@ -40,15 +42,27 @@ void main() {															\n\
 static const char* fShader = "									\n\
 #version 330													\n\
 																\n\
+in vec4 vCol;													\n\
+																\n\
 out vec4 color;													\n\
 																\n\
 void main() {													\n\
-	color = vec4(1.0, 0.0, 0.0, 1.0);							\n\
+	color = vCol;												\n\
 }";
 
-void createTriangle() {
+
+void createPyramid() {
+	unsigned int indices[] = {
+		0, 3, 1, // face triangular esquerda
+		1, 3, 2, // face triangular direita
+		2, 3, 0, // face triangular frontal
+		0, 1, 2 // base
+	};
+
+
 	GLfloat vertices[] = {
 		-1.0f, -1.0f,  0.0f,
+		0.0f, -1.0f, 1.0f, // just added 
 		1.0f, -1.0f, 0.0f,
 		0.0f, 1.0f, 0.0f
 	};
@@ -57,15 +71,20 @@ void createTriangle() {
 	glCreateVertexArrays(1, &VAO);
 	glBindVertexArray(VAO); //binding to VAO
 
-		// Create VBO (vertex buffer object)
-		glGenBuffers(1 , &VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO); //binding to VBO
+		// Create IBO (index buffer object)
+		glGenBuffers(1, &IBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 		
+		// Create VBO (vertex buffer object)
+		glGenBuffers(1, &VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO); //binding to VBO
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0); //gives more info about how the vertex buffer object should be interpreted
 		glEnableVertexAttribArray(0);
 		
 		glBindBuffer(GL_ARRAY_BUFFER, 0); //unbinding from VBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //unbinding from IBO
 
 	glBindVertexArray(0); //unbinding from VAO
 }
@@ -167,10 +186,12 @@ int main() {
 		return 1;
 	}
 
+	glEnable(GL_DEPTH_TEST);
+
 	// Setup Viewport size
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
-	createTriangle();
+	createPyramid();
 	compileShaders();
 
 	while (!glfwWindowShouldClose(mainWindow)) {
@@ -195,20 +216,23 @@ int main() {
 
 		// Clear window
 		glClearColor(0.0f, 0.0f , 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(shader);
 
 		glm::mat4 model(1.0f);
-		model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
-		model = glm::rotate(model, curRotation * toRadians , glm::vec3(0.0f, 0.0f, 1.0f));
-		// model = glm::rotate();
-		// model = glm::scale();
-		// 
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
+		model = glm::rotate(model, curRotation * toRadians , glm::vec3(0.0f, 1.0f, 0.0f));
+		//model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
+		
+		 
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 
 		glBindVertexArray(VAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 		glUseProgram(0);
 
