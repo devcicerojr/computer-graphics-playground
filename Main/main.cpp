@@ -7,12 +7,22 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec4.hpp>
+#include <vector>
+#include <Mesh/Mesh.hpp>
+#include <memory>
 
-using namespace std;
+using std::vector;
+using std::shared_ptr;
+using std::make_shared;
+using std::cout;
+using std::endl;
+using cgraph::Mesh;
+
+vector<shared_ptr<Mesh>> meshes;
 
 const GLint WIDTH = 800 , HEIGHT = 600;
 
-GLuint VAO, VBO, IBO, shader, uniformModel;
+GLuint shader, uniformModel, uniformProjection;
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -31,9 +41,10 @@ layout(location = 0) in vec3 pos;										\n\
 out vec4 vCol;															\n\
 																		\n\
 uniform mat4 model;														\n\
+uniform mat4 projection;												\n\
 																		\n\
 void main() {															\n\
-	gl_Position = model * vec4(pos ,  1.0);								\n\
+	gl_Position = projection * model * vec4(pos ,  1.0);				\n\
 	vCol = vec4(clamp(pos, 0.0, 1.0), 1.0);								\n\
 }";
 
@@ -67,26 +78,13 @@ void createPyramid() {
 		0.0f, 1.0f, 0.0f
 	};
 
-	// Creat VAO (vertex array object)
-	glCreateVertexArrays(1, &VAO);
-	glBindVertexArray(VAO); //binding to VAO
+	shared_ptr<Mesh> pyramid_mesh = make_shared<Mesh>();
+	pyramid_mesh->create(vertices, indices, 12, 12);
+	shared_ptr<Mesh> pyramid_mesh2 = make_shared<Mesh>();
+	pyramid_mesh2->create(vertices, indices, 12, 12);
 
-		// Create IBO (index buffer object)
-		glGenBuffers(1, &IBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-		
-		// Create VBO (vertex buffer object)
-		glGenBuffers(1, &VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO); //binding to VBO
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0); //gives more info about how the vertex buffer object should be interpreted
-		glEnableVertexAttribArray(0);
-		
-		glBindBuffer(GL_ARRAY_BUFFER, 0); //unbinding from VBO
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //unbinding from IBO
-
-	glBindVertexArray(0); //unbinding from VAO
+	meshes.push_back(pyramid_mesh);
+	meshes.push_back(pyramid_mesh2);
 }
 
 void addShader(GLuint program, const char* shader_code, GLenum shader_type) {
@@ -142,6 +140,7 @@ void compileShaders() {
 	}
 
 	uniformModel = glGetUniformLocation(shader, "model");
+	uniformProjection = glGetUniformLocation(shader, "projection");
 }
 
 int main() {
@@ -194,6 +193,8 @@ int main() {
 	createPyramid();
 	compileShaders();
 
+	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)bufferWidth/(GLfloat)bufferHeight, 0.1f, 100.0f);
+
 	while (!glfwWindowShouldClose(mainWindow)) {
 		// Get and Handle User Input Events
 		glfwPollEvents();
@@ -221,19 +222,27 @@ int main() {
 		glUseProgram(shader);
 
 		glm::mat4 model(1.0f);
-		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
-		model = glm::rotate(model, curRotation * toRadians , glm::vec3(0.0f, 1.0f, 0.0f));
-		//model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
-		
-		 
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		glm::mat4 model2(1.0f);
 
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
+		model = glm::translate(model, glm::vec3(-0.5f, triOffset, -2.5f));
+		//model = glm::rotate(model, curRotation * toRadians , glm::vec3(0.0f, 1.0f, 0.0f));	 
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
+
+
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
+
+		meshes[0]->render();
+
+		model2 = glm::translate(model2, glm::vec3(0.5f, -triOffset, -2.5f));
+		//model2 = glm::rotate(model2, curRotation * toRadians , glm::vec3(1.0f, 0.0f, 0.0f));
+		model2 = glm::scale(model2, glm::vec3(0.4f, 0.4f, 1.0f));
+
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model2));
+
+		meshes[1]->render();
+
+
 		glUseProgram(0);
 
 
