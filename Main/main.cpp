@@ -101,7 +101,7 @@ void addShader(GLuint program, const char* shader_code, GLenum shader_type) {
 
 	glGetShaderiv(the_shader, GL_COMPILE_STATUS, &result);
 	if(!result) {
-		glGetShaderInfoLog(shader, sizeof(eLog), NULL, eLog);
+		glGetShaderInfoLog(the_shader, sizeof(eLog), NULL, eLog);
 		cout << "Error compiling shaderType: "<< shader_type << " ErrorLog: " <<  eLog <<  endl;
 		return;
 	}
