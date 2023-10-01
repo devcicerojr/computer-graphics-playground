@@ -26,5 +26,5 @@ message("Runtime output: ${CMAKE_CURRENT_BINARY_DIR}")
 file(COPY ${GLEW_DLL} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_compile_definitions(_HAS_STD_BYTE=0)
-add_subdirectory ("Main")
 add_subdirectory ("Domain")
+add_subdirectory ("Main")

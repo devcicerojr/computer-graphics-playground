@@ -9,6 +9,7 @@
 #include <glm/vec4.hpp>
 #include <vector>
 #include <Mesh/Mesh.hpp>
+#include <Shader/Shader.hpp>
 #include <memory>
 
 using std::vector;
@@ -17,8 +18,10 @@ using std::make_shared;
 using std::cout;
 using std::endl;
 using cgraph::Mesh;
+using cgraph::Shader;
 
 vector<shared_ptr<Mesh>> meshes;
+vector<shared_ptr<Shader>> shaders;
 
 const GLint WIDTH = 800 , HEIGHT = 600;
 
@@ -61,8 +64,12 @@ void main() {													\n\
 	color = vCol;												\n\
 }";
 
+void createShaders() {
+	auto shader1 = make_shared<Shader>();
+	//shader1->createFromString();
+}
 
-void createPyramid() {
+void createObjects() {
 	unsigned int indices[] = {
 		0, 3, 1, // face triangular esquerda
 		1, 3, 2, // face triangular direita
@@ -190,7 +197,7 @@ int main() {
 	// Setup Viewport size
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
-	createPyramid();
+	createObjects();
 	compileShaders();
 
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)bufferWidth/(GLfloat)bufferHeight, 0.1f, 100.0f);
