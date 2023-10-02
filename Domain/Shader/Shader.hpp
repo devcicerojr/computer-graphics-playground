@@ -5,6 +5,8 @@
 
 #include <GL/glew.h>
 
+using std::string;
+
 
 namespace cgraph {
 	class Shader {
@@ -16,6 +18,10 @@ namespace cgraph {
 	public:
 		Shader();
 		void createFromString(const char* vertex_code, const char* fragment_code);
+		void createFromFile(const string& vertex_shader_path, const string& fragment_shader_path);
+		
+		string readFile(const string& file_path);
+
 		GLuint getProjectionLocation() const;
 		GLuint getModelLocation() const;
 		void use() const;

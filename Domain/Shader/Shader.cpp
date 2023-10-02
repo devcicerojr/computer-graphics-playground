@@ -4,6 +4,9 @@
 using std::cout;
 using std::endl;
 
+using std::string;
+using std::ifstream;
+
 namespace cgraph {
 
 	Shader::Shader():
@@ -13,8 +16,32 @@ namespace cgraph {
 
 	}
 
+	void Shader::createFromFile(const string& vertex_shader_path, const string& fragment_shader_path) {
+		string vertex_str = readFile(vertex_shader_path);
+		string frag_str = readFile(fragment_shader_path);
+		compile(vertex_str.c_str(), frag_str.c_str());
+	}
+
 	void Shader::createFromString(const char* vertex_code, const char* fragment_code) {
 		compile(vertex_code, fragment_code);
+	}
+
+	string Shader::readFile(const string& file_path) {
+		string content = "";
+		ifstream sh_file(file_path);
+		if (!sh_file.is_open()) {
+			cout << "Failed to read " << file_path <<"! File doesn't exist!(?)" << endl;
+			return content;
+		}
+
+		string line = "";
+		while (!sh_file.eof()) {
+			std::getline(sh_file, line);
+			content.append(line + "\n");
+		}
+
+		sh_file.close();
+		return content;
 	}
 
 	void Shader::compile(const char* vertex_code, const char* fragment_code) {

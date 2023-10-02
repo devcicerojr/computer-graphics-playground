@@ -25,6 +25,10 @@ message("Runtime output: ${CMAKE_CURRENT_BINARY_DIR}")
 
 file(COPY ${GLEW_DLL} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
+set (SHADERS_LOCATION "${CMAKE_CURRENT_LIST_DIR}/Resources/Shaders")
+file (GLOB SHADER_FILES "${SHADERS_LOCATION}/shader.*")
+file (COPY ${SHADER_FILES} DESTINATION "${PROJECT_BINARY_DIR}/Main/" )
+
 add_compile_definitions(_HAS_STD_BYTE=0)
 add_subdirectory ("Domain")
 add_subdirectory ("Main")

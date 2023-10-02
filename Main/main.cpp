@@ -1,6 +1,12 @@
 #include <iostream>
 #include <string.h>
 #include <cmath>
+// TODO: Include logic here for other OSes
+#ifdef _WIN32
+	#include <Windows.h>
+#endif
+
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -11,12 +17,16 @@
 #include <Mesh/Mesh.hpp>
 #include <Shader/Shader.hpp>
 #include <memory>
+#include <filesystem>
 
+using std::string;
 using std::vector;
 using std::shared_ptr;
 using std::make_shared;
 using std::cout;
 using std::endl;
+using std::filesystem::path;
+
 using cgraph::Mesh;
 using cgraph::Shader;
 
@@ -24,8 +34,6 @@ vector<shared_ptr<Mesh>> meshes;
 vector<shared_ptr<Shader>> shaders;
 
 const GLint WIDTH = 800 , HEIGHT = 600;
-
-GLuint shader, uniformModel, uniformProjection;
 
 bool direction = true;
 float triOffset = 0.0f;
@@ -36,37 +44,35 @@ const float toRadians = 3.14159265f / 180.0f;
 float curRotation = 0.0f;
 float rotateIncrement = 1.0f;
 
+path GetExecutablePath() {
+		path executable_path;
+
+// TODO: Add logic here for other OSes
+#ifdef _WIN32
+		char buffer[MAX_PATH];
+		GetModuleFileNameA(NULL, buffer, MAX_PATH);
+		executable_path = buffer;
+#endif
+
+		return executable_path;
+}
+
+static const path v_shader_path = GetExecutablePath().parent_path().append("shader.vert");
+static const path f_shader_path = GetExecutablePath().parent_path().append("shader.frag");
+
 // Vertex shader
-static const char* vShader = "											\n\
-#version 330															\n\
-																		\n\
-layout(location = 0) in vec3 pos;										\n\
-out vec4 vCol;															\n\
-																		\n\
-uniform mat4 model;														\n\
-uniform mat4 projection;												\n\
-																		\n\
-void main() {															\n\
-	gl_Position = projection * model * vec4(pos ,  1.0);				\n\
-	vCol = vec4(clamp(pos, 0.0, 1.0), 1.0);								\n\
-}";
+static const string vShader = v_shader_path.string();
 
 
 // Fragment Shader
-static const char* fShader = "									\n\
-#version 330													\n\
-																\n\
-in vec4 vCol;													\n\
-																\n\
-out vec4 color;													\n\
-																\n\
-void main() {													\n\
-	color = vCol;												\n\
-}";
+static const string fShader = f_shader_path.string();
+
+
 
 void createShaders() {
 	auto shader1 = make_shared<Shader>();
-	//shader1->createFromString();
+	shader1->createFromFile(vShader, fShader);
+	shaders.push_back(shader1);
 }
 
 void createObjects() {
@@ -92,62 +98,6 @@ void createObjects() {
 
 	meshes.push_back(pyramid_mesh);
 	meshes.push_back(pyramid_mesh2);
-}
-
-void addShader(GLuint program, const char* shader_code, GLenum shader_type) {
-	GLuint the_shader = glCreateShader(shader_type);
-	const GLchar* the_code = shader_code;
-
-	GLint codeLength = strlen(shader_code);
-
-	glShaderSource(the_shader, 1, &the_code, &codeLength);
-	glCompileShader(the_shader);
-
-	GLint result = 0;
-	GLchar eLog[1024] = {0};
-
-	glGetShaderiv(the_shader, GL_COMPILE_STATUS, &result);
-	if(!result) {
-		glGetShaderInfoLog(the_shader, sizeof(eLog), NULL, eLog);
-		cout << "Error compiling shaderType: "<< shader_type << " ErrorLog: " <<  eLog <<  endl;
-		return;
-	}
-
-	glAttachShader(program, the_shader);
-
-	return;
-}
-
-void compileShaders() {
-	shader = glCreateProgram();
-	if (!shader) {
-		cout << "shader creation failed!" << endl;
-	}
-
-	addShader(shader, vShader, GL_VERTEX_SHADER);
-	addShader(shader, fShader, GL_FRAGMENT_SHADER);
-
-	GLint result = 0;
-	GLchar eLog[1024] = {0};
-
-	glLinkProgram(shader);
-	glGetProgramiv(shader, GL_LINK_STATUS, &result);
-	if(!result) {
-		glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
-		cout << "Error linking program: " <<  eLog << endl;
-		return;
-	}
-
-	glValidateProgram(shader);
-	glGetProgramiv(shader, GL_VALIDATE_STATUS, &result);
-	if(!result) {
-		glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
-		cout << "Error validating program: " <<  eLog << endl;
-		return;
-	}
-
-	uniformModel = glGetUniformLocation(shader, "model");
-	uniformProjection = glGetUniformLocation(shader, "projection");
 }
 
 int main() {
@@ -198,7 +148,9 @@ int main() {
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
 	createObjects();
-	compileShaders();
+	createShaders();
+
+	GLuint uniformModel = 0, uniformProjection = 0;
 
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)bufferWidth/(GLfloat)bufferHeight, 0.1f, 100.0f);
 
@@ -226,7 +178,9 @@ int main() {
 		glClearColor(0.0f, 0.0f , 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUseProgram(shader);
+		shaders[0]->use();
+		uniformModel = shaders[0]->getModelLocation();
+		uniformProjection = shaders[0]->getProjectionLocation();
 
 		glm::mat4 model(1.0f);
 		glm::mat4 model2(1.0f);
