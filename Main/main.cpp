@@ -1,11 +1,13 @@
 #include <iostream>
 #include <string.h>
 #include <cmath>
+#include <vector>
+#include <memory>
+#include <filesystem>
 // TODO: Include logic here for other OSes
 #ifdef _WIN32
 	#include <Windows.h>
 #endif
-
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -13,11 +15,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec4.hpp>
-#include <vector>
+
 #include <Mesh/Mesh.hpp>
 #include <Shader/Shader.hpp>
-#include <memory>
-#include <filesystem>
+#include <WindowHandler/WindowHandler.hpp>
 
 using std::string;
 using std::vector;
@@ -29,7 +30,10 @@ using std::filesystem::path;
 
 using cgraph::Mesh;
 using cgraph::Shader;
+using cgraph::WindowHandler;
 
+
+WindowHandler window_handler;
 vector<shared_ptr<Mesh>> meshes;
 vector<shared_ptr<Shader>> shaders;
 
@@ -101,60 +105,19 @@ void createObjects() {
 }
 
 int main() {
-	// Initialize GLFW
-	if (!glfwInit()) {
-		cout << "Error when initializing glfw!" << endl;
-		glfwTerminate();
-		return 1;
-	}
+	
+	window_handler = WindowHandler(800, 600);
+	window_handler.initialize();
 
-	// Setup GLFW Window Properties
-	// OpenGL Version
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	// Core Profile = No backwards compatibility
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// Allows forward compatibility
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-	GLFWwindow *mainWindow = glfwCreateWindow(WIDTH, HEIGHT, "Test Window", NULL, NULL);
-
-	if (!mainWindow) {
-		cout << "GLFW window creation failed" << endl;
-		glfwTerminate();
-		return 1;
-	}
-
-	// Get Buffer Size Information
-	int bufferWidth, bufferHeight;
-	glfwGetFramebufferSize(mainWindow, &bufferWidth, &bufferHeight);
-
-	// set context for GLEW to use
-	glfwMakeContextCurrent(mainWindow);
-
-	// Allow modern extension features
-	glewExperimental = GL_TRUE;
-
-	if (glewInit() != GLEW_OK) {
-		cout << "GLEW initialization failed!" << endl;
-		glfwDestroyWindow(mainWindow);
-		glfwTerminate();
-		return 1;
-	}
-
-	glEnable(GL_DEPTH_TEST);
-
-	// Setup Viewport size
-	glViewport(0, 0, bufferWidth, bufferHeight);
 
 	createObjects();
 	createShaders();
 
 	GLuint uniformModel = 0, uniformProjection = 0;
 
-	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)bufferWidth/(GLfloat)bufferHeight, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(45.0f, static_cast<GLfloat>(window_handler.getBufferWidth())/static_cast<GLfloat>(window_handler.getBufferHeight()), 0.1f, 100.0f);
 
-	while (!glfwWindowShouldClose(mainWindow)) {
+	while (!window_handler.getShouldClose()) {
 		// Get and Handle User Input Events
 		glfwPollEvents();
 
@@ -207,7 +170,7 @@ int main() {
 		glUseProgram(0);
 
 
-		glfwSwapBuffers(mainWindow);
+		window_handler.swapBuffers();
 	}
 	
 
