@@ -166,7 +166,6 @@ int main() {
 
 		meshes[1]->render();
 
-
 		glUseProgram(0);
 
 
