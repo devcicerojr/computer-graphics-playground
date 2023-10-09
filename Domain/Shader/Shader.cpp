@@ -12,7 +12,8 @@ namespace cgraph {
 	Shader::Shader():
 	id_{0},
 	uniform_model_{0},
-	uniform_projection_{0}{
+	uniform_projection_{0},
+	uniform_view_{0}{
 
 	}
 
@@ -74,6 +75,7 @@ namespace cgraph {
 
 		uniform_model_ = glGetUniformLocation(id_, "model");
 		uniform_projection_ = glGetUniformLocation(id_, "projection");
+		uniform_view_ = glGetUniformLocation(id_, "view");
 	}
 
 	void Shader::use() const {
@@ -86,6 +88,10 @@ namespace cgraph {
 
 	GLuint Shader::getModelLocation() const {
 		return uniform_model_;
+	}
+
+	GLuint Shader::getViewLocation() const {
+		return uniform_view_;
 	}
 
 	void Shader::clear() {

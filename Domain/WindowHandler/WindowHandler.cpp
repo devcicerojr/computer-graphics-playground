@@ -93,7 +93,7 @@ namespace cgraph {
 		createCallbacks();
 
 	// Locks cursor to the window and makes it invisible
-		glfwSetInputMode(main_window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		//glfwSetInputMode(main_window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Allow modern extension features
 		glewExperimental = GL_TRUE;
@@ -131,10 +131,9 @@ namespace cgraph {
 		if (key >= 0  && key < 1024) {
 			if (action == GLFW_PRESS) {
 				the_window->keys_state_[key] = true;
-				cout << "pressed: " << key << "\n";
 			}
 			else if (action == GLFW_RELEASE) {
-				cout << "released: " << key << "\n";
+				the_window->keys_state_[key] = false;
 			}
 		}
 	}
@@ -153,7 +152,6 @@ namespace cgraph {
 
 		the_window->last_x_ = static_cast<GLfloat>(xPos);
 		the_window->last_y_ = static_cast<GLfloat>(yPos);
-		cout << "x: " << xPos << "  y: " << yPos << "\n";
 	}
 
 } // end of namespace cgraph

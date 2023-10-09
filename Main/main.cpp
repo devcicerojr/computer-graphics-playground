@@ -16,9 +16,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec4.hpp>
 
-#include <Mesh/Mesh.hpp>
-#include <Shader/Shader.hpp>
-#include <WindowHandler/WindowHandler.hpp>
+
+#include <Domain/Mesh/Mesh.hpp>
+#include <Domain/Shader/Shader.hpp>
+#include <Domain/WindowHandler/WindowHandler.hpp>
+#include <Domain/Camera/Camera.hpp>
 
 using std::string;
 using std::vector;
@@ -31,11 +33,13 @@ using std::filesystem::path;
 using cgraph::Mesh;
 using cgraph::Shader;
 using cgraph::WindowHandler;
+using cgraph::Camera;
 
 
 WindowHandler window_handler;
 vector<shared_ptr<Mesh>> meshes;
 vector<shared_ptr<Shader>> shaders;
+Camera camera;
 
 const GLint WIDTH = 800 , HEIGHT = 600;
 
@@ -113,13 +117,17 @@ int main() {
 	createObjects();
 	createShaders();
 
-	GLuint uniformModel = 0, uniformProjection = 0;
+	GLuint uniformModel = 0, uniformProjection = 0, uniformView = 0;
+
+	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 0.0f, 0.05f, 1.0f);
 
 	glm::mat4 projection = glm::perspective(45.0f, static_cast<GLfloat>(window_handler.getBufferWidth())/static_cast<GLfloat>(window_handler.getBufferHeight()), 0.1f, 100.0f);
 
 	while (!window_handler.getShouldClose()) {
 		// Get and Handle User Input Events
 		glfwPollEvents();
+
+		camera.keyControl(window_handler.getKeysState());
 
 		if (direction) {
 			triOffset += triIncrement;
@@ -144,6 +152,7 @@ int main() {
 		shaders[0]->use();
 		uniformModel = shaders[0]->getModelLocation();
 		uniformProjection = shaders[0]->getProjectionLocation();
+		uniformView = shaders[0]->getViewLocation();
 
 		glm::mat4 model(1.0f);
 		glm::mat4 model2(1.0f);
@@ -155,6 +164,7 @@ int main() {
 
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
 
 		meshes[0]->render();
 

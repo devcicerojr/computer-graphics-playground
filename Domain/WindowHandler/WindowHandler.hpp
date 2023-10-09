@@ -13,7 +13,7 @@ namespace cgraph {
 		GLFWwindow* main_window_;
 		GLint width_, height_;
 		GLint buffer_width_, buffer_height_;
-		mutable bool keys_state_[1024];
+		mutable bool keys_state_[1024] = {0};
 		GLfloat last_x_, last_y_, x_change_, y_change_;
 		bool mouse_first_move_;
 
