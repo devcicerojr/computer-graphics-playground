@@ -3,11 +3,21 @@ set (CMAKE_CXX_STANDARD 17)
 
 project ("CGPlayground")
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-	message("Build Architecture x86")
-elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	message(FATAL_ERROR "x64 is not supported so far")
+if(NOT DEFINED CMAKE_GENERATOR_PLATFORM)
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
+        set(CMAKE_GENERATOR_PLATFORM Win32)
+    elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+        set(CMAKE_GENERATOR_PLATFORM x64)
+    endif()
 endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+  message("Build Architecture x86")
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  message(FATAL_ERROR "x64 is not supported so far")
+endif()
+
+message("binary dir: ${CMAKE_BINARY_DIR}")
 
 set (GLEW_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/external/glew/include/" CACHE INTERNAL "")
 set (GLEW_LIB_DIR "${CMAKE_CURRENT_LIST_DIR}/external/glew/lib/Release/x86/" CACHE INTERNAL "")

@@ -1,4 +1,5 @@
 #include "Camera.hpp"
+#include <GLFW/glfw3.h>
 
 using glm::vec3;
 using glm::radians;
