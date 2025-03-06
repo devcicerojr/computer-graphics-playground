@@ -15,7 +15,19 @@ void SimpleCGApp::init(void)
 
 void SimpleCGApp::exec(void)
 {
+    while (!(window_.shouldClose()))
+    {
+        controller_.pollEvents();
+        theLoop();
+    }
+}
 
+void SimpleCGApp::theLoop(void)
+{
+    buildCommands();
+    window_.clearScreen();
+    window_.showScene();
+    window_.swapBuffers();
 }
 
 } // end of namespace jfj

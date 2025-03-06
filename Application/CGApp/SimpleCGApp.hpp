@@ -7,6 +7,7 @@ namespace jfj
 class SimpleCGApp : public CGApp
 {
 private:
+    void theLoop(void);
 public:
     SimpleCGApp() = default;
     ~SimpleCGApp() = default;
