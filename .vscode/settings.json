@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "memory": "cpp",
+        "filesystem": "cpp",
+        "locale": "cpp",
+        "xstring": "cpp"
+    }
+}
