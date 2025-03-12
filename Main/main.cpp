@@ -35,6 +35,8 @@ using cgraph::Shader;
 using cgraph::WindowHandler;
 using cgraph::Camera;
 
+const double FIXED_TIME_STEP = 1.0 / 60.0;
+
 
 WindowHandler window_handler;
 vector<shared_ptr<Mesh>> meshes;
@@ -123,63 +125,79 @@ int main() {
 
 	glm::mat4 projection = glm::perspective(45.0f, static_cast<GLfloat>(window_handler.getBufferWidth())/static_cast<GLfloat>(window_handler.getBufferHeight()), 0.1f, 100.0f);
 
+	double lastTime = glfwGetTime();
+    double accumulator = 0.0;
+
 	while (!window_handler.getShouldClose()) {
-		// Get and Handle User Input Events
-		glfwPollEvents();
 
-		camera.keyControl(window_handler.getKeysState());
+		double currentTime = glfwGetTime();
+        double deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
 
-		if (direction) {
-			triOffset += triIncrement;
-		}
-		else {
-			triOffset -= triIncrement;
-		}
+        accumulator += deltaTime;
 
-		curRotation += rotateIncrement;
-		if (curRotation >= 360.0f) {
-			curRotation -= 360.0f;
-		}
+        // Process fixed update steps
+        while (accumulator >= FIXED_TIME_STEP) {
+            // Update game logic (physics, animations, etc.)
+            accumulator -= FIXED_TIME_STEP;
 
-		if (abs(triOffset) >= triMaxOffset) {
-			direction = !direction;
-		}
+			// Get and Handle User Input Events
+			glfwPollEvents();
 
-		// Clear window
-		glClearColor(0.0f, 0.0f , 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			camera.keyControl(window_handler.getKeysState());
 
-		shaders[0]->use();
-		uniformModel = shaders[0]->getModelLocation();
-		uniformProjection = shaders[0]->getProjectionLocation();
-		uniformView = shaders[0]->getViewLocation();
+			if (direction) {
+				triOffset += triIncrement;
+			}
+			else {
+				triOffset -= triIncrement;
+			}
 
-		glm::mat4 model(1.0f);
-		glm::mat4 model2(1.0f);
+			curRotation += rotateIncrement;
+			if (curRotation >= 360.0f) {
+				curRotation -= 360.0f;
+			}
 
-		model = glm::translate(model, glm::vec3(-0.5f, triOffset, -2.5f));
-		//model = glm::rotate(model, curRotation * toRadians , glm::vec3(0.0f, 1.0f, 0.0f));	 
-		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
+			if (abs(triOffset) >= triMaxOffset) {
+				direction = !direction;
+			}
 
+			// Clear window
+			glClearColor(0.0f, 0.0f , 0.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
-		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
+			shaders[0]->use();
+			uniformModel = shaders[0]->getModelLocation();
+			uniformProjection = shaders[0]->getProjectionLocation();
+			uniformView = shaders[0]->getViewLocation();
 
-		meshes[0]->render();
+			glm::mat4 model(1.0f);
+			glm::mat4 model2(1.0f);
 
-		model2 = glm::translate(model2, glm::vec3(0.5f, -triOffset, -2.5f));
-		//model2 = glm::rotate(model2, curRotation * toRadians , glm::vec3(1.0f, 0.0f, 0.0f));
-		model2 = glm::scale(model2, glm::vec3(0.4f, 0.4f, 1.0f));
-
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model2));
-
-		meshes[1]->render();
-
-		glUseProgram(0);
+			model = glm::translate(model, glm::vec3(-0.5f, triOffset, -2.5f));
+			//model = glm::rotate(model, curRotation * toRadians , glm::vec3(0.0f, 1.0f, 0.0f));	 
+			model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 
 
-		window_handler.swapBuffers();
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
+			glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
+
+			meshes[0]->render();
+
+			model2 = glm::translate(model2, glm::vec3(0.5f, -triOffset, -2.5f));
+			//model2 = glm::rotate(model2, curRotation * toRadians , glm::vec3(1.0f, 0.0f, 0.0f));
+			model2 = glm::scale(model2, glm::vec3(0.4f, 0.4f, 1.0f));
+
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model2));
+
+			meshes[1]->render();
+
+			glUseProgram(0);
+
+
+			window_handler.swapBuffers();
+        }
 	}
 	
 
