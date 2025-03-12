@@ -1,7 +1,16 @@
 #include "SimpleCGApp.hpp"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 namespace jfj
 {
+
+void SimpleCGApp::createWindow(void)
+{
+
+}
 
 void SimpleCGApp::init(void)
 {
